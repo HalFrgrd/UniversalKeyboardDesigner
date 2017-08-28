@@ -19,9 +19,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def keywidthForSpacing 	15.3)
+(def keywidthForSpacing 	14)
 (def keySpacing 			5.05)
-(def arrXWid				8 )
+(def arrXWid				7 )
 (def arrYLen				5 )
 
 (def plate-thickness 4)
@@ -31,6 +31,31 @@
 
 (def edgeheight 15)
 (def basethickness 4)
+
+(def leftedgepadding 5)
+(def rightedgepadding 5)
+(def topedgepadding 5)
+(def bottedgepadding 5)
+
+(def mount-hole-width 14)
+(def mount-hole-height 14)
+(def spacminussize (- keywidthForSpacing mount-hole-height))
+
+(def existencearray [
+					[false true true false false true  true ] 
+					[false true true true  true  true  true ] 
+					[false true true false true  false false ] 
+					[false true true true  true  false false ] 
+					[true  true true true  true  false true ] ;as seem from origin looking in pos x, pos y
+					])
+
+(def keycaparray 	[
+					[1 1 1 1 1 1 1 ] 
+					[1 1 1 1 1 1 1 ] 
+					[1 1 1 1 1 1 1 ] 
+					[1 1 1 1 1 1 1 ] 
+					[1 1 1 1 1 1 1 ] ;as seem from origin looking in pos x, pos y
+					])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some handy functions
@@ -42,22 +67,25 @@
 
 (defn average [numbers] (/ (apply + numbers) (count numbers)))
 
-(defn averageofcoord [coords]
-	;(if (nil? more) alternative
-	(prn "first more is " (first coords))
+
+(defn averageofcoord [alternative & more]
+	; (if (not (nil? more)) 
+	(if (nil? more) alternative
 		[
-			(average (map first coords))
-			(average (map second coords))
-			(average (map last coords))
-		]);)
+			(average (map first more))
+			(average (map second more))
+			(average (map last more))
+		])
+	;[0 0 0])
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions that initialise the array
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn createarray [x y] ;x is across, y is down
-	"This makes only the staring array. It will be modified by writingArrayFunctions.
-	Simple 2D vecotr with each element being a map of some key data."
+	"This makes only the starting array. It will be modified by writingArrayFunctions.
+	Simple 2D vector with each element being a map of some key data (anyone get the 'key' pun?)."
 	(vec(for [ycoin (range y)]
 		(vec (for [xcoin (range x)]
 			{:xPosInArr xcoin, 
@@ -65,14 +93,13 @@
 			 :cpntPos [ (* xcoin (+ keySpacing keywidthForSpacing)) (* ycoin (+ keySpacing keywidthForSpacing)) 0], 
 			 :cpntVec [0 0 1],
 			 :cpntAng 0}
-			)
-		))
-	))
+	)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions that read the array
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn retr [arr x y] ((arr y) x))
+(defn retr "Should only be used when certain that the key is inside of array. If unsure, use smartretrPntData" 
+	[arr x y] ((arr y) x)) 
 
 (declare smartretrPntDataY) ;need to declare smartretrPntDataY because it is referenced before declaration
 
@@ -89,15 +116,17 @@
 
 	The reason for trying to place keys outside the array onto the plane of keys inside of the array, is so that the edges in the keyplate are perpendicular with 
 	the keyswitches.
+
+	NOTE: this will only handle when called either just before or just after a list. E.g. if you ask when xcoin = -2, you get an error but -1 is good.
 	"
 	(cond 
 		(= xcoin -1)
 			(let [ referencepnt		(smartretrPntData arr 0 ycoin)]
-				(assoc referencepnt :cpntPos (attachpoint [(referencepnt :cpntPos) (referencepnt :cpntVec) (referencepnt :cpntAng)] [(- 0 mount-hole-width keySpacing ) 0 0])))
+				(assoc referencepnt :cpntPos (attachpoint [(referencepnt :cpntPos) (referencepnt :cpntVec) (referencepnt :cpntAng)] [(- 0 keywidthForSpacing keySpacing ) 0 0])))
 		
 		(= xcoin arrXWid)
 			(let [referencepnt		(smartretrPntData arr (dec arrXWid) ycoin)]
-				(assoc referencepnt :cpntPos (attachpoint [(referencepnt :cpntPos) (referencepnt :cpntVec) (referencepnt :cpntAng)] [(+ mount-hole-width keySpacing ) 0 0])))
+				(assoc referencepnt :cpntPos (attachpoint [(referencepnt :cpntPos) (referencepnt :cpntVec) (referencepnt :cpntAng)] [(+ keywidthForSpacing keySpacing ) 0 0])))
 
 		:else
 			(smartretrPntDataY arr xcoin ycoin)
@@ -213,21 +242,28 @@
 				(attach [cpntP cpntV cpntA]
 						[[0 0 0] [0 0 1] 0]
 						(union (dsa-cap keycapsize) keyswitch)
-					)))))
+				)))))
+
+(defn showsquareatkey [arr]
+		(for [ycoin (range -1 (inc arrYLen)) xcoin (range -1 (inc arrXWid))]
+			(let [
+			pntData 	(smartretrPntData arr xcoin ycoin)
+			cpntP 		(:cpntPos pntData)
+			cpntV 		(:cpntVec pntData)
+			cpntA 		(:cpntAng pntData)
+			keycapsize  (:keycapsize pntData)
+				]
+			
+				(attach [cpntP cpntV cpntA]
+						[[0 0 1] [0 0 1] 0]
+						(cube mount-hole-height mount-hole-width 2)
+				))))
+
 ;;; Finished Keycaps + Keyswitch
 ;;;;;;;
 
 ;;;;;;;
 ;;;Making web
-
-(def leftedgepadding 3)
-(def rightedgepadding 3)
-(def topedgepadding 3)
-(def bottedgepadding 3)
-
-(def mount-hole-width 14)
-(def mount-hole-height 14)
-
 
 (def post-size 0.1)
 (def web-post (->> (cube post-size post-size plate-thickness)
@@ -242,7 +278,7 @@
 (def web-post-br (translate [(- (/ mount-hole-width  2) post-adj) (+ (/ mount-hole-height -2) post-adj) 0] web-post))
 
 (defn triangle-hulls [& shapes]
-	"TBH I didn't write this. Adereth did. Its just a nice hulling function that makes 
+	"TBH I didn't write this, Adereth did. Its just a nice hulling function that makes 
 	multiple hulls instead of one big hull. I guess hulls in sets of three shapes as 
 	three points will always form a plane. This way the hulls will always be planes (flat)"
   (apply union
@@ -257,77 +293,116 @@
 		cpntA 		(:cpntAng pntData)
 		exists		(:existence pntData)
 
+		edge    ;this determines if the post should be an edge post or not.
+			;This is easy if x or y is -1 or arrxwid or arrylen.
+			;also easy if x or y is 0 and being called from the left or below. 
+			;Remember that the webbing starts with one key and then awakens keys to the right or above it.
+			;A littl trickier is if x or y is one less than their max. They have to be making columns or rows 
+			;or diags and being called from either this one or from a suitable thing.
+			;For instance, diagonals being called from below shouldn't be edged because this would create edge posts one key in from the actual edge.
+			;Then, if any key in the currently forming web should be non existent, there needs to be an edge post.
+			;For example, |n|c|, n is nonexistent, c is current key. That current key needs to look to the left and see that key exists. It doesn't, so put an edge post up.)
+			;Also |c|n| would need to check to the right.
+			;This is only two combinations for either row or column, but for diagonals, 4 different keys and each one needs to check 3 keys.
+			 
+			(or 
+			    (= xcoin -1 ) 
+				(= ycoin -1 ) 
+				(= xcoin arrXWid) 
+				(= ycoin arrYLen) 
+				(and (= xcoin 0) (= callingfrom :callfromleft))
+				(and (= xcoin 0) (= callingfrom :callfromleftbelow ))
+				(and (= ycoin 0) (= callingfrom :callfrombelow))
+				(and (= ycoin 0) (= callingfrom :callfromleftbelow ))
+
+				(and (= ycoin (dec arrYLen)) (or    (and (= makingwhat :makingcolumns) (= callingfrom :callfromthisone))
+													(and (= makingwhat :makingdiag) ( or (= callingfrom :callfromthisone) (= callingfrom :callfromleft)))))
+				(and (= xcoin (dec arrXWid)) (or    (and (= makingwhat :makingrows) (= callingfrom :callfromthisone))
+													(and (= makingwhat :makingdiag) (= callingfrom :callfromthisone))
+													(and (= makingwhat :makingdiag) (= callingfrom :callfrombelow))))
+
+				(let [
+				neighbours 	(cond
+								(= makingwhat :makingcolumns)
+									(cond
+										(= callingfrom :callfromthisone)
+											[(smartretrPntData arr xcoin ycoin) (smartretrPntData arr xcoin (inc ycoin))]
+										(= callingfrom :callfrombelow)
+											[(smartretrPntData arr xcoin (dec ycoin)) (smartretrPntData arr xcoin ycoin)]
+										)
+								(= makingwhat :makingrows)
+									(cond
+										(= callingfrom :callfromthisone)
+											[(smartretrPntData arr xcoin ycoin) (smartretrPntData arr (inc xcoin) ycoin)]
+										(= callingfrom :callfromleft)
+											[(smartretrPntData arr (dec xcoin) ycoin) (smartretrPntData arr xcoin ycoin)]
+										)
+								(= makingwhat :makingdiag)
+									(cond
+										(= callingfrom :callfromthisone)
+											[(smartretrPntData arr xcoin ycoin)
+											 (smartretrPntData arr (inc xcoin) ycoin)
+											 (smartretrPntData arr xcoin (inc ycoin))
+											 (smartretrPntData arr (inc xcoin) (inc ycoin))]
+										(= callingfrom :callfromleft)
+											[(smartretrPntData arr (dec xcoin) ycoin)
+											 (smartretrPntData arr xcoin ycoin)
+											 (smartretrPntData arr (dec xcoin) (inc ycoin))
+											 (smartretrPntData arr xcoin (inc ycoin))]
+										(= callingfrom :callfrombelow)
+											[(smartretrPntData arr xcoin (dec ycoin))
+											 (smartretrPntData arr (inc xcoin) (dec ycoin))
+											 (smartretrPntData arr xcoin ycoin)
+											 (smartretrPntData arr (inc xcoin) ycoin)]
+										(= callingfrom :callfromleftbelow)
+											[(smartretrPntData arr (dec xcoin) (dec ycoin))
+											 (smartretrPntData arr xcoin (dec ycoin))
+											 (smartretrPntData arr (dec xcoin) ycoin)
+											 (smartretrPntData arr xcoin ycoin)]
+										)
+							)
+					]
+					
+					(->>
+						(map #(get %1 :existence) neighbours) 
+						(map (make-fn not))
+						(apply (make-fn or)))))
+		
+			
+
 		xtrans (cond 
-				(= xcoin -1) (- keySpacing leftedgepadding); (if (= plateorbase :base) -2 0))
-				(= xcoin arrXWid) (- rightedgepadding keySpacing) ;(if (= plateorbase :base) 2 0))
+				(= xcoin -1) (- keySpacing leftedgepadding)
+				(= xcoin arrXWid) (- rightedgepadding keySpacing)
 				; (= exists false)
 				; 	(cond 
-				; 		(and (= :callfromthisone callingfrom) (or (= :makingrows makingwhat)))
-				; 			(- keySpacing leftedgepadding )
-
-				; 		(and (= :callfromthisone callingfrom) (or (= :makingdiag makingwhat)))
-				; 			(- keySpacing leftedgepadding )
-						
-				; 		(and (= :callfromleft callingfrom) (or (= :makingrows makingwhat)))
-				; 			(- rightedgepadding keySpacing )
-
-				; 		(and (= :callfromleft callingfrom) (or (= :makingdiag makingwhat)))
-				; 			(- rightedgepadding keySpacing )
-
-				; 		(and (= :makingcolumns makingwhat) (or (= :bl pos) (= :tl pos)))
-				; 			(- rightedgepadding keySpacing )
-
-				; 		(and (= :makingcolumns makingwhat) (or (= :br pos) (= :tr pos)))
-				; 			(- keySpacing leftedgepadding )
-
-				; 		(and (= :callfromleftbelow callingfrom) (= :makingdiag makingwhat))
-				; 			(- rightedgepadding keySpacing )
-
-				; 		(and (= :callfrombelow callingfrom) (= :makingdiag makingwhat))
-				; 			(- keySpacing leftedgepadding )
+				; 		(and (= :callfromleft callingfrom) (= :makingrows makingwhat))
+				; 			(- 0 keySpacing (- leftedgepadding) spacminussize)
+				; 		(and (= :callfromthisone callingfrom) (= :makingrows makingwhat))
+				; 			(- keySpacing rightedgepadding (- spacminussize))
+				; 		(and (not (or (= xcoin 0) (= xcoin (dec arrXWid)) )) ( or (= :callfromthisone callingfrom) (= :callfrombelow callingfrom)) (= :makingdiag makingwhat))
+				; 			(- keySpacing rightedgepadding (- spacminussize))
+				; 		(and (not (or (= xcoin 0) (= xcoin (dec arrXWid)) )) ( or (= :callfromleft callingfrom) (= :callfromleftbelow callingfrom)) (= :makingdiag makingwhat))
+				; 			(- 0 keySpacing (- leftedgepadding) spacminussize)
 
 				; 		:else
 				; 			0
 				; 		)
-
-					
 				:else
 					0
 				)
+
 		ytrans (cond 
-				(= ycoin -1) (- keySpacing bottedgepadding); (if (= plateorbase :base) -2 0))
-				(= ycoin arrYLen) (- topedgepadding keySpacing); (if (= plateorbase :base) 2 0))
-				; (= exists false)
-				; 	(cond 
-				; 		(and (= :callfromthisone callingfrom) (or (= :makingdiag makingwhat)))
-				; 			(- keySpacing topedgepadding )
+				(= ycoin -1) (- keySpacing bottedgepadding)
+				(= ycoin arrYLen) (- topedgepadding keySpacing)
+				; (= exists false) 
+				; 	(cond
+				; 		(and (= :callfrombelow callingfrom)   (= :makingcolumns makingwhat))
+				; 			(- 0 keySpacing (- topedgepadding) spacminussize)
+				; 		(and (= :callfromthisone callingfrom) (= :makingcolumns makingwhat))
+				; 			(- keySpacing bottedgepadding (- spacminussize))
+				; 		)	
 
-				; 		(and (= :callfromthisone callingfrom) (or (= :makingcolumns makingwhat)))
-				; 			(- keySpacing topedgepadding )
-
-				; 		(and (= :callfrombelow callingfrom) (or (= :makingcolumns makingwhat)))
-				; 			(- bottedgepadding keySpacing )
-
-				; 		(and (= :callfrombelow callingfrom) (or (= :makingdiag makingwhat)))
-				; 			(- bottedgepadding keySpacing )
-
-				; 		(and (= :makingrows makingwhat) (or (= :tr pos) (= :tl pos)))
-				; 			(- keySpacing topedgepadding )
-
-				; 		(and (= :makingrows makingwhat) (or (= :br pos) (= :bl pos)))
-				; 			(- bottedgepadding keySpacing )
-
-				; 		(and (= :callfromleftbelow callingfrom) (= :makingdiag makingwhat))
-				; 			(- bottedgepadding keySpacing )
-
-				; 		(and (= :callfromleft callingfrom) (= :makingdiag makingwhat))
-				; 			(- keySpacing topedgepadding )
-
-				; 		:else
-				; 			0
-				; 		)
-				:else
-					0
+				:else 0
 				)
 
 		ztrans (if (= plateorbase :base)
@@ -336,83 +411,7 @@
 					0
 			)
 
-		edge    ;this determines if the post should be an edge post or not.
-				;This is easy if x or y is -1 or arrxwid or arrylen.
-				;also easy if x or y is 0 and being called from the left or below. 
-				;Remember that the webbing starts with one key and then awakens keys to the right or above it.
-				;A littl trickier is if x or y is one less than their max. They have to be making columns or rows 
-				;or diags and being called from either this one or from a suitable thing.
-				;For instance, diagonals being called from below shouldn't be edged because this would create edge posts one key in from the actual edge.
-				;Then, if any key in the currently forming web should be non existent, there needs to be an edge post.
-				;For example, |n|c|, n is nonexistent, c is current key. That current key needs to look to the left and see that key exists. It doesn't, so put an edge post up.)
-				;Also |c|n| would need to check to the right.
-				;This is only two combinations for either row or column, but for diagonals, 4 different keys and each one needs to check 3 keys.
-				 
-				(or 
-				    (= xcoin -1 ) 
-					(= ycoin -1 ) 
-					(= xcoin arrXWid) 
-					(= ycoin arrYLen) 
-					(and (= xcoin 0) (= callingfrom :callfromleft))
-					(and (= xcoin 0) (= callingfrom :callfromleftbelow ))
-					(and (= ycoin 0) (= callingfrom :callfrombelow))
-					(and (= ycoin 0) (= callingfrom :callfromleftbelow ))
-
-					(and (= ycoin (dec arrYLen)) (or    (and (= makingwhat :makingcolumns) (= callingfrom :callfromthisone))
-														(and (= makingwhat :makingdiag) ( or (= callingfrom :callfromthisone) (= callingfrom :callfromleft)))
-														))
-					(and (= xcoin (dec arrXWid)) (or    (and (= makingwhat :makingrows) (= callingfrom :callfromthisone))
-														(and (= makingwhat :makingdiag) (= callingfrom :callfromthisone))
-														(and (= makingwhat :makingdiag) (= callingfrom :callfrombelow))))
-
-					(let [
-					neighbours 	(cond
-									(= makingwhat :makingcolumns)
-										(cond
-											(= callingfrom :callfromthisone)
-												[(smartretrPntData arr xcoin ycoin) (smartretrPntData arr xcoin (inc ycoin))]
-											(= callingfrom :callfrombelow)
-												[(smartretrPntData arr xcoin (dec ycoin)) (smartretrPntData arr xcoin ycoin)]
-											)
-									(= makingwhat :makingrows)
-										(cond
-											(= callingfrom :callfromthisone)
-												[(smartretrPntData arr xcoin ycoin) (smartretrPntData arr (inc xcoin) ycoin)]
-											(= callingfrom :callfromleft)
-												[(smartretrPntData arr (dec xcoin) ycoin) (smartretrPntData arr xcoin ycoin)]
-											)
-									(= makingwhat :makingdiag)
-										(cond
-											(= callingfrom :callfromthisone)
-												[(smartretrPntData arr xcoin ycoin)
-												 (smartretrPntData arr (inc xcoin) ycoin)
-												 (smartretrPntData arr xcoin (inc ycoin))
-												 (smartretrPntData arr (inc xcoin) (inc ycoin))]
-											(= callingfrom :callfromleft)
-												[(smartretrPntData arr (dec xcoin) ycoin)
-												 (smartretrPntData arr xcoin ycoin)
-												 (smartretrPntData arr (dec xcoin) (inc ycoin))
-												 (smartretrPntData arr xcoin (inc ycoin))]
-											(= callingfrom :callfrombelow)
-												[(smartretrPntData arr xcoin (dec ycoin))
-												 (smartretrPntData arr (inc xcoin) (dec ycoin))
-												 (smartretrPntData arr xcoin ycoin)
-												 (smartretrPntData arr (inc xcoin) ycoin)]
-											(= callingfrom :callfromleftbelow)
-												[(smartretrPntData arr (dec xcoin) (dec ycoin))
-												 (smartretrPntData arr xcoin (dec ycoin))
-												 (smartretrPntData arr (dec xcoin) ycoin)
-												 (smartretrPntData arr xcoin ycoin)]
-											)
-								)
-						]
-						
-						(->>
-							(map #(get %1 :existence) neighbours) 
-							(map (make-fn not))
-							(apply (make-fn or)))))
-		
-						
+				
 		
 		post		(cond
 						(= pos :tl) (partial web-post-tl)
@@ -428,8 +427,6 @@
 															) post)
 
 		]
-
-
 		(attach 
 			[cpntP cpntV cpntA]
 			[[0 0 0] [0 0 1] 0]
@@ -524,10 +521,8 @@
 
 			))))
 
-;;;Finisehd of making web
+;;;Finished of making web
 ;;;;;;;
-
-
 
 (defn showconnectors [arr]
 		(for [ycoin (range arrYLen) xcoin (range arrXWid)]
@@ -820,7 +815,7 @@
 	))))
 	)
 
-(defn curvexaxisy [arr]
+(defn curveit [arr]
 	(let [
 		arguments [arr (partial #(* (+ (* (expt %1 2) 0.25) ( expt %2 2) ) 0.008))
 
@@ -835,35 +830,16 @@
 	(apply apply3dequation arguments)))
 
 (defn keyExistence [arr]
-	(let [existencearray
-					 [
-					[false false true true true true true true true] 
-					[false false true true true true true true true] 
-					[false false true true true true true true true] 
-					[false false true true true true true true true] 
-					[false true true true true true true true true] ;as seem from origin looking in pos x, pos y
-
-					]]
-		(vec (for [ycoin (range arrYLen)]
-			(vec (for [xcoin (range arrXWid)]
-				(assoc (retr arr xcoin ycoin) :existence (get-in existencearray [(- (dec arrYLen) ycoin) xcoin]))
-		)))))
-	)
+	(vec (for [ycoin (range arrYLen)]
+		(vec (for [xcoin (range arrXWid)]
+			(assoc (retr arr xcoin ycoin) :existence (get-in existencearray [(- (dec arrYLen) ycoin) xcoin]))
+	)))))
 
 (defn changeKeyCapSize [arr]
-	(let [keycaparray
-					 [
-					[1 1 1 1 1 1 1 1.5 ] 
-					[1 1 1 1 1 1 1 1.5 ] 
-					[1 1 1 1 1 1 1 1.5 ] 
-					[1 1 1 1 1 1 1 1.5 ] 
-					[1 1 1 1 1 1 1 1.5 ] ;as seem from origin looking in pos x, pos y
-					]]
-		(vec (for [ycoin (range arrYLen)]
-			(vec (for [xcoin (range arrXWid)]
-				(assoc (retr arr xcoin ycoin) :keycapsize (get-in keycaparray [(- (dec arrYLen) ycoin) xcoin]))
-		)))))
-	)
+	(vec (for [ycoin (range arrYLen)]
+		(vec (for [xcoin (range arrXWid)]
+			(assoc (retr arr xcoin ycoin) :keycapsize (get-in keycaparray [(- (dec arrYLen) ycoin) xcoin]))
+	)))))
 
 (defn alignkeys [arr & more]
 	;(prn (nth more 0))
@@ -891,8 +867,6 @@
 	 						:ontheleft  [-19 0 0]
 	 						:ontheright [19  0 0]
 	 						)
-
-
 
 	 	yaxisinv    	[
 	 					 (+ (* (startingpnt 0) d) (* (startingpnt 2) a))
@@ -966,6 +940,7 @@
 		))
 	))
 
+
 (defn changeNonExistentKeys [arr]
 	"This changes the position and vector of non existent keys so they minimally disturb the other keys.
 	For instance imagine this arr [[T  T  T]
@@ -991,15 +966,16 @@
 	of averaging the ideal positions and vectors. This local ideal approach can be found commented out in retrforbasegoody."
 	(vec(for [ycoin (range arrYLen)]
 		(vec (for [xcoin (range arrXWid)]
+
 			(let [
 				pntData (retr arr xcoin ycoin)
 				existence (pntData :existence)
 				]
 				;(prn xcoin ycoin)
 				(if (not existence)
-					(let [weightingFilter 	[1 20 1
-											 20 0 20
-											 1 20 1] ;weighting filter as column and row connectors are more important 
+					(let [weightingFilter 	[1 2 1
+											 2 0 2
+											 1 2 1] ;weighting filter as column and row connectors are more important 
 						 positions 			[
 						 						[(+ 0 mount-hole-height keySpacing) (- 0 mount-hole-height keySpacing) 0] ;positions relative to tl, tm, tr, ml ...
 						 						[0 									(- 0 mount-hole-height keySpacing) 0]
@@ -1025,9 +1001,9 @@
 
 												(map (fn [itm]  (attachpoint [(itm :cpntPos) (itm :cpntVec) (itm :cpntAng)] (positions (itm :positions))))) ;find the relative position if it were attached to a neighbouring key
 
-												
-												#(if (nil? %1) (pntData :cpntPos) (apply averageofcoord %1))
-												;(apply averageofcoord (pntData :cpntPos))
+												;#(try (apply averageofcoord %1) (catch Exception e (pntData :cpntPos)) );take the average
+												;#(if (not (empty? %1)) (apply averageofcoord) [0 0 0] )
+												(apply averageofcoord (pntData :cpntPos))
 												)
 						newvec 				(->> 
 												(for [ychange [1 0 -1] xchange [1 0 -1]] (try (get-in arr [(+ ycoin ychange) (- xcoin xchange)]) (catch Exception e nil))) ;similar thing but for the average vector of the neighbouring keys
@@ -1041,19 +1017,19 @@
 
 												(map (fn [itm] (itm :cpntVec)))
 
-												;(apply averageofcoord (pntData :cpntVec))
-												(prn)
-												;#(if (nil? %1) (pntData :cpntVec) (apply averageofcoord %1))
+												;#( try (apply averageofcoord %1) (catch Exception e (pntData :cpntVec)) )
+												(apply averageofcoord (pntData :cpntVec))
 												)
 							]
 						;(prn xcoin ycoin (pntData :cpntPos) newcoord)
-						;(assoc pntData :cpntPos newcoord :cpntVec newvec) ;updated the keys position with new pos and vec
-						(prn newcoord)
+						(assoc pntData :cpntPos newcoord :cpntVec newvec) ;updated the keys position with new pos and vec
+
 						)
 					(retr arr xcoin ycoin) ;if the key exists, just keep the same data.
 					)
-		))))))
+				)
 
+			)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main Functions
@@ -1064,51 +1040,13 @@
 	and outputs a modified arr ready to be used as input by the next function. "
 	(-> 
 		(centrearray arr)
-		(moveonXYZ :all nil 0 -12 0)
-		
-		(moveonXYZ :col 7 5 0 0)
-		(moveonXYZ :row 3 0 1.2 0)
-		(moveonXYZ :row 4 0 1.8 0)
-
-		(curvexaxisy)
-
-		(angleKey :row 0 (/ Math/PI 4))
-		(angleKey :colrow [7 0] (/ Math/PI -9))
-		(moveonXYZ :row 0 0 6 -15)
-		(moveonXYZ :colrow [7 0] 0 -6 4)
-
-		(moveonXYZ :colrow [6 0] 0 -4 0)
 
 
-		(moveonXYZ :col 2 		 0 7 -3)
-		(moveonXYZ :colrow [2 0] 0 -4 3)
+		(curveit)
 
-		(moveonXYZ :col 3 		 0 7 -3)
-		(moveonXYZ :colrow [3 0] 0 -4 3)
-
-
-		(moveonXYZ :col 4 		 0 14 -7)
-		(moveonXYZ :colrow [4 0] 0 -6 7)
-
-		(moveonXYZ :col 5 		 0 7 -3)
-		(moveonXYZ :colrow [5 0] 0 -4 3)
-
-
-		(moveonXYZ :colrow [1 0] 0 0 -5)
-
-
-		
-		
-		(alignkeys [[0 0] [1 0] :ontheleft])
-		(alignkeys [[8 0] [7 0] :ontheright])
-		(alignkeys [[8 1] [7 1] :ontheright])
-		(alignkeys [[8 2] [7 2] :ontheright])
-		(alignkeys [[8 3] [7 3] :ontheright])
-		(alignkeys [[8 4] [7 4] :ontheright])
 		(keyExistence)
-		;(changeNonExistentKeys)
-		(changeKeyCapSize)
-		;(moveonXYZ :colrow [3 4] 0 0 0)
+		(changeNonExistentKeys)
+		;(changeKeyCapSize)
 	))
 	
 (defn readingArrayFunctions [arr & more]
@@ -1120,7 +1058,8 @@
 		;MAKING PLATE
 			(union 
 				(makeconnectors arr :plate)
-				(makesidenubs arr)) 
+				;(makesidenubs arr)
+				) 
 			
 
 		;MAKING EASY BASE
@@ -1138,10 +1077,11 @@
 		; 	)
 		;  (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
 
-		(makeconnectors arr :base)
+		;(makeconnectors arr :base)
 		
 		;(showkeycaps arr)
-		;(showconnectors arr)
+		(showconnectors arr)
+		(showsquareatkey arr)
 
 	)))
 
@@ -1155,9 +1095,4 @@
 (spit "things/post-demo.scad"
       (write-scad 
       	(->>
-      	(buildarray)
-      	;(rotate (/ Math/PI 15) [0 1 0]) 
-     	;(rotate (/ Math/PI 10) [1 0 0])
-     	;(dsa-cap 1.5)
-
-      		))  :append true)
+      	(buildarray))))
