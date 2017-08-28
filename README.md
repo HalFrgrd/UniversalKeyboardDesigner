@@ -1,36 +1,36 @@
-# optcase
+# Universal Keyboard Designer
 
-FIXME: description
+This is a tool used for creating 3D printable cases. 
 
-## Installation
+I wanted something similar to the Dactyl but that only allows for curvature in the x and y axes. My tool can take any 3D equation and the keyplate will take the equation's shape.
 
-Download from http://example.com/FIXME.
+## How to use it
 
-## Usage
+There is the some small config at the top of the src/optcase/core.clj file.
 
-FIXME: explanation
+The main config will be at the bottom in the writingArrayFunctions and readingArrayFunctions functions. 
+The writingArrayFunctions modifies the array with functions such as:
+- moveonXYZ
+- alignkeys
+- angleKey
 
-    $ java -jar optcase-0.1.0-standalone.jar [args]
 
-## Options
+(from dactyl by adereth)
+### Generating a Design
 
-FIXME: listing of options this app accepts.
+**Setting up the Clojure environment**
+* [Install the Clojure runtime](https://clojure.org)
+* [Install the Leiningen project manager](http://leiningen.org/)
+* [Install OpenSCAD](http://www.openscad.org/)
 
-## Examples
+**Generating the design**
+* Run `lein repl`
+* Load the file `(load-file "src/optcase/core.clj")`
+* This will regenerate the `things/*.scad` files
+* Use OpenSCAD to open a `.scad` file.
+* Make changes to design, repeat `load-file`, OpenSCAD will watch for changes and rerender.
+* When done, use OpenSCAD to export STL files
 
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2017 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+**Tips**
+* [Some other ways to evaluate the clojure design file](http://stackoverflow.com/a/28213489)
+* [Example designing with clojure](http://adereth.github.io/blog/2014/04/09/3d-printing-with-clojure/)

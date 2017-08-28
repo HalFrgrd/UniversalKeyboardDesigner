@@ -67,17 +67,13 @@
 
 (defn average [numbers] (/ (apply + numbers) (count numbers)))
 
-
 (defn averageofcoord [alternative & more]
-	; (if (not (nil? more)) 
 	(if (nil? more) alternative
 		[
 			(average (map first more))
 			(average (map second more))
 			(average (map last more))
-		])
-	;[0 0 0])
-)
+		]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions that initialise the array
@@ -681,7 +677,7 @@
 						
 						)
 
-		keyforattachment (retr arr 7 4 )
+		keyforattachment (retr arr 5 4 )
 
 		]
 
@@ -842,7 +838,8 @@
 	)))))
 
 (defn alignkeys [arr & more]
-	;(prn (nth more 0))
+	"Use this if you want to keys to share the same allignment.
+	For instance, if you print a 2u key that has two stems, it can sit on two 1u keys that are alligned"
 	(let [
 	 	vecofkeys 		(nth more 0)
 	 	movingkey 		(nth vecofkeys 0)
@@ -889,19 +886,16 @@
   	    updatedpos 		(assoc-in arr [ (movingkey 1) (movingkey 0) :cpntPos ] finalpos)
 
 
-		updatedvec 		(assoc-in updatedpos [(movingkey 1) (movingkey 0) :cpntVec] anchkeyvec)
+		updatedkey 		(assoc-in updatedpos [(movingkey 1) (movingkey 0) :cpntVec] anchkeyvec)
  
 
 		]
-		;(prn u (modofvec u))
 
-		;(prn finalpos anchkeypos yaxisinv xaxisinv)
-		updatedvec
+		updatedkey
 		)
-
 	)
 
-(defn angleKey [arr colOrRow points angle]; in x axis
+(defn angleKey [arr colOrRow points angle axis]
 	(vec(for [ycoin (range arrYLen)]
 		(vec (for [xcoin (range arrXWid)]
 			(let [
@@ -922,13 +916,18 @@
 				 :yPosInArr yval,
 				 :cpntPos cpntP,
 				 :cpntVec (if condition 
-				 				;((prn rownum)
-					 			[
-					 			(cpntV 0)
-					 			(- (* (cpntV 1)  (Math/cos angle)) (* (cpntV 2) (Math/sin angle)))
-					 			(+ (* (cpntV 1)  (Math/sin angle)) (* (cpntV 2) (Math/cos angle)))
-
-					 			];)
+				 				(if (= :xaxis axis)
+						 			[
+						 			(cpntV 0)
+						 			(- (* (cpntV 1)  (Math/cos angle)) (* (cpntV 2) (Math/sin angle)))
+						 			(+ (* (cpntV 1)  (Math/sin angle)) (* (cpntV 2) (Math/cos angle)))
+						 			]
+						 			[
+						 			
+						 			(+ (* (cpntV 2)  (Math/sin angle)) (* (cpntV 1) (Math/cos angle)))
+						 			(cpntV 1)
+						 			(- (* (cpntV 2)  (Math/cos angle)) (* (cpntV 1) (Math/sin angle)))
+						 			])
 					 		cpntV)
 					 		,
 				 :cpntAng cpntA}
@@ -1040,13 +1039,20 @@
 	and outputs a modified arr ready to be used as input by the next function. "
 	(-> 
 		(centrearray arr)
-
-
 		(curveit)
+
+		(angleKey :row 0 0.4 :xaxis)
+
+		(moveonXYZ :col 2 		 0 7 -3)
+		(moveonXYZ :colrow [2 0] 0 -4 3)
+
+		(alignkeys [[0 0] [1 0] :ontheleft])
+
+
 
 		(keyExistence)
 		(changeNonExistentKeys)
-		;(changeKeyCapSize)
+		(changeKeyCapSize)
 	))
 	
 (defn readingArrayFunctions [arr & more]
@@ -1056,41 +1062,35 @@
 	(union 
 
 		;MAKING PLATE
-			(union 
-				(makeconnectors arr :plate)
-				;(makesidenubs arr)
-				) 
+		(union 
+			(makeconnectors arr :plate)
+			(makesidenubs arr)
+			) 
 			
 
-		;MAKING EASY BASE
-		; (difference
-		; 	(union
-		; 		(difference
-		; 			(makeconnectors arr :base)
-		; 			(scale [1.001 1.001 1] (makeconnectors arr :plate))
-		; 			)
-		; 		(promicro 4.4 18 33.3 :pos arr)
-		; 		(microusb 4 8.2 11.5 :pos arr))
-		; 	(union
-		; 		(promicro 4.4 18 33.3 :neg arr)
-		; 		(microusb 4 8.2 11.5 :neg arr))
-		; 	)
-		;  (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
-
-		;(makeconnectors arr :base)
+		;MAKING  BASE
+		(difference
+			(union
+				(makeconnectors arr :base)
+				(promicro 4.4 18 33.3 :pos arr)
+				(microusb 4 8.2 11.5 :pos arr))
+			(union
+				(promicro 4.4 18 33.3 :neg arr)
+				(microusb 4 8.2 11.5 :neg arr))
+			)
+		 (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
 		
-		;(showkeycaps arr)
+		(showkeycaps arr)
 		(showconnectors arr)
-		(showsquareatkey arr)
+		;(showsquareatkey arr)
 
 	)))
 
 (defn buildarray []
-		 (-> (createarray arrXWid arrYLen) ;create the array to pass onto the transformation functions
+	(-> (createarray arrXWid arrYLen) ;create the array to pass onto the transformation functions
 		 	 (writingArrayFunctions)
 		 	 (readingArrayFunctions) ;the outcome of this should be code for scad-clj
-		 	 )
-	)
+	))
 
 (spit "things/post-demo.scad"
       (write-scad 
