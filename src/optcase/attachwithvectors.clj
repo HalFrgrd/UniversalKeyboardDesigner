@@ -132,23 +132,32 @@
 	 	BonD 			(/ b d)
 		
 
-	 	yaxisinv    	[
-	 					 (+ (* x d) (* z a))
-	 					 y
-	 					 (- (* z d) (* x a))
+	 	xaxisinv   		[
+	 					 x
+	 					 (+ (* y ConD) (* z BonD))
+	 					 (- (* z ConD) (* y BonD))
 	 					]
 
-	 	xaxisinv   		[
-	 					 (yaxisinv 0)
-	 					 (+ (* (yaxisinv 1) ConD) (* (yaxisinv 2) BonD))
-	 					 (- (* (yaxisinv 2) ConD) (* (yaxisinv 1) BonD))
+
+	 	yaxisinv    	[
+	 					 (+ (* (xaxisinv 0) d) (* (xaxisinv 2) a))
+	 					 (xaxisinv 1)
+	 					 (- (* (xaxisinv 2) d) (* (xaxisinv 0) a))
+	 					]
+
+	 	
+	 	zaxistrans		[
+	 					(- (* (yaxisinv 0)  (Math/cos ang)) (* (yaxisinv 1) (Math/sin ang)))
+						(+ (* (yaxisinv 0)  (Math/sin ang)) (* (yaxisinv 1) (Math/cos ang)))
+						(yaxisinv 2)
 	 					]
         
 	 	finalpos		[
-	 					(+ (xaxisinv 0) (pos 0))
-	 					(+ (xaxisinv 1) (pos 1))
-	 					(+ (xaxisinv 2) (pos 2))
+	 					(+ (zaxistrans 0) (pos 0))
+	 					(+ (zaxistrans 1) (pos 1))
+	 					(+ (zaxistrans 2) (pos 2))
 	 					]
 	 	]
+	 ;	(when (not (= ang 0)) (prn yaxisinv "asdf" zaxistrans))
 	 	finalpos
 	))

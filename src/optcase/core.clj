@@ -22,7 +22,7 @@
 (def keywidthForSpacing 	14)
 (def keySpacing 			5.05)
 (def arrXWid				7 )
-(def arrYLen				5 )
+(def arrYLen				4 )
 
 (def plate-thickness 4)
 (def dsa-length 18.25)
@@ -30,7 +30,9 @@
 (def heightbaseofkeycap 6.1 )
 
 (def edgeheight 15)
-(def basethickness 4)
+(def basethickness 30) ;if you want a curved base, set this to the same as desired basethickness
+(def desiredbasethickness 4)
+(def overlap	2)
 
 (def leftedgepadding 5)
 (def rightedgepadding 5)
@@ -42,15 +44,15 @@
 (def spacminussize (- keywidthForSpacing mount-hole-height))
 
 (def existencearray [
-					[false true true false false true  true ] 
+					
 					[false true true true  true  true  true ] 
-					[false true true false true  false false ] 
-					[false true true true  true  false false ] 
-					[true  true true true  true  false true ] ;as seem from origin looking in pos x, pos y
+					[false true true true true  true true ] 
+					[false true true true  true  true true ] 
+					[true  true true true  true  true true ] ;as seem from origin looking in pos x, pos y
 					])
 
 (def keycaparray 	[
-					[1 1 1 1 1 1 1 ] 
+					
 					[1 1 1 1 1 1 1 ] 
 					[1 1 1 1 1 1 1 ] 
 					[1 1 1 1 1 1 1 ] 
@@ -402,8 +404,7 @@
 				)
 
 		ztrans (if (= plateorbase :base)
-					(+ (- edgeheight) (/ basethickness 2) -0.2)
-					
+					(+ (+ overlap) (+ edgeheight) (- basethickness) -0.2)	
 					0
 			)
 
@@ -418,8 +419,8 @@
 		post 		(if (and buildedgesornot edge) (resize [0 0 edgeheight   ] post) post)
 		post 		(if (= plateorbase :base) 	   (resize [0 0 basethickness] post) post)
 		post 		(if (and (= plateorbase :base) edge) (->> post
-															(resize [0 0 (/ basethickness 2)])
-															(translate [0 0  (/ basethickness -2)])
+															(resize [0 0 (- basethickness overlap )])
+															(translate [0 0  (- overlap )])
 															) post)
 
 		]
@@ -626,7 +627,7 @@
 								(hull
 									(cube width length 0.01)
 									(translate [0 0 height] 				   (cube (+ width midwallthick) (+ length midwallthick) 0.01))
-									(translate [0 0 (+ 10 height midwallthick)] (cube (+ width midwallthick) (+ length midwallthick) 0.01))
+									(translate [0 0 (+ 4 height midwallthick)] (cube (+ width midwallthick) (+ length midwallthick) 0.01))
 									)
 							(translate [0 10 0]
 								(hull
@@ -635,14 +636,15 @@
 						
 						)
 
-		keyforattachment (retr arr 3 3 )
+		keyforattachment (retr arr 5 2 )
 
 		]
 
 		(->> shape
-			(rotate  -0.07 [1 0 0])
-			(rotate  0.04 [0 1 0])
-			(attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) 0 ] [[10 0 19] [0 0 1] 0])
+			; (rotate  -0.07 [1 0 0])
+			; (rotate  0.04 [0 1 0])
+			(translate [0 13 -19])
+			(attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) 0 ] [[0 0 0] [0 0 1] 0])
 			)
 		
 		;(prn (:cpntPos keyforattachment))
@@ -677,14 +679,15 @@
 						
 						)
 
-		keyforattachment (retr arr 5 4 )
+		keyforattachment (retr arr 2 3 )
 
 		]
 
 		(->> shape
-			(rotate  -0.4 [1 0 0])
-			(rotate  0.04 [0 1 0])
-			(attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) 0 ] [[13 6 19] [0 0 1] 0])
+			; (rotate  -0.4 [1 0 0])
+			; (rotate  0.04 [0 1 0])
+			 (translate [0 2 -21])
+			(attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) 0 ] [[0 0 0] [0 0 1] 0])
 			)
 		
 		;(prn (:cpntPos keyforattachment))
@@ -813,11 +816,11 @@
 
 (defn curveit [arr]
 	(let [
-		arguments [arr (partial #(* (+ (* (expt %1 2) 0.25) ( expt %2 2) ) 0.008))
+		arguments [arr (partial #(* (+ (* (expt %1 2) 0.000000025) ( expt %2 2) ) 0.003))
 
 					
-					(partial #(+ (* %1 2 0.008 0.25)  (* %2 0) ))
-					(partial #(+ (* %1 2 0.008)     (* %2 0) ))	
+					(partial #(+ (* %1 2 0.008 0.000000025)  (* %2 0) ))
+					(partial #(+ (* %1 2 0.003)     (* %2 0) ))	
 					
 					1
 					1
@@ -916,18 +919,23 @@
 				 :yPosInArr yval,
 				 :cpntPos cpntP,
 				 :cpntVec (if condition 
-				 				(if (= :xaxis axis)
-						 			[
+				 				(case axis
+						 			:xaxis [
 						 			(cpntV 0)
 						 			(- (* (cpntV 1)  (Math/cos angle)) (* (cpntV 2) (Math/sin angle)))
 						 			(+ (* (cpntV 1)  (Math/sin angle)) (* (cpntV 2) (Math/cos angle)))
 						 			]
-						 			[
-						 			
+						 			:yaxis [
 						 			(+ (* (cpntV 2)  (Math/sin angle)) (* (cpntV 1) (Math/cos angle)))
 						 			(cpntV 1)
 						 			(- (* (cpntV 2)  (Math/cos angle)) (* (cpntV 1) (Math/sin angle)))
-						 			])
+						 			]
+						 			:zaxis [
+						 			(- (* (cpntV 0)  (Math/cos angle)) (* (cpntV 1) (Math/sin angle)))
+						 			(+ (* (cpntV 0)  (Math/sin angle)) (* (cpntV 1) (Math/cos angle)))
+						 			(cpntV 2)
+						 			]
+						 			)
 					 		cpntV)
 					 		,
 				 :cpntAng cpntA}
@@ -939,6 +947,84 @@
 		))
 	))
 
+(defn rotateKey [arr colOrRow points angle axis]
+	(vec(for [ycoin (range arrYLen)]
+		(vec (for [xcoin (range arrXWid)]
+			(let [
+				pntData (retr arr xcoin ycoin)
+				xval		(:xPosInArr pntData)
+				yval  		(:yPosInArr pntData)
+				cpntP 		(:cpntPos pntData)
+				cpntV 		(:cpntVec pntData)
+				cpntA 		(:cpntAng pntData)
+				condition 	(case colOrRow
+								:row (= points yval)
+								:col (= points xval)
+								:colrow (and (= (points 0) xval) (= (points 1) yval)))
+				]
+				
+
+				{:xPosInArr xval, 
+				 :yPosInArr yval,
+				 :cpntPos (if condition 
+				 				(case axis
+						 			:xaxis [
+						 			(cpntP 0)
+						 			(- (* (cpntP 1)  (Math/cos angle)) (* (cpntP 2) (Math/sin angle)))
+						 			(+ (* (cpntP 1)  (Math/sin angle)) (* (cpntP 2) (Math/cos angle)))
+						 			]
+						 			:yaxis [
+						 			(+ (* (cpntP 2)  (Math/sin angle)) (* (cpntP 1) (Math/cos angle)))
+						 			(cpntP 1)
+						 			(- (* (cpntP 2)  (Math/cos angle)) (* (cpntP 1) (Math/sin angle)))
+						 			]
+						 			:zaxis [
+						 			(- (* (cpntP 0)  (Math/cos angle)) (* (cpntP 1) (Math/sin angle)))
+						 			(+ (* (cpntP 0)  (Math/sin angle)) (* (cpntP 1) (Math/cos angle)))
+						 			(cpntP 2)
+						 			]
+						 			)
+					 		cpntP),
+				 :cpntVec cpntV,
+				 :cpntAng cpntA}
+				
+
+				)
+
+			)
+		))
+	))
+
+
+(defn rotateAttachpoint [arr colOrRow points angle ]
+	(vec(for [ycoin (range arrYLen)]
+		(vec (for [xcoin (range arrXWid)]
+			(let [
+				pntData (retr arr xcoin ycoin)
+				xval		(:xPosInArr pntData)
+				yval  		(:yPosInArr pntData)
+				cpntP 		(:cpntPos pntData)
+				cpntV 		(:cpntVec pntData)
+				cpntA 		(:cpntAng pntData)
+				condition 	(case colOrRow
+								:row (= points yval)
+								:col (= points xval)
+								:colrow (and (= (points 0) xval) (= (points 1) yval)))
+				]
+				
+
+				{:xPosInArr xval, 
+				 :yPosInArr yval,
+				 :cpntPos cpntP
+				 :cpntVec cpntV,
+				 :cpntAng (if condition (+ cpntA angle) cpntA)}
+				
+
+				)
+
+			)
+		))
+	))
 
 (defn changeNonExistentKeys [arr]
 	"This changes the position and vector of non existent keys so they minimally disturb the other keys.
@@ -1041,50 +1127,112 @@
 		(centrearray arr)
 		(curveit)
 
-		(angleKey :row 0 0.4 :xaxis)
+		(rotateKey :col 2 0.06 :zaxis)
+		(rotateKey :col 1 0.06 :zaxis)
+		(rotateKey :col 0 0.06 :zaxis)
+		(rotateAttachpoint :col 2 0.06 )
+		(rotateAttachpoint :col 1 0.06 )
+		(rotateAttachpoint :col 0 0.06 )
+		
 
-		(moveonXYZ :col 2 		 0 7 -3)
-		(moveonXYZ :colrow [2 0] 0 -4 3)
+		(rotateKey :col 6 -0.06 :zaxis)
+		(rotateKey :col 5 -0.06 :zaxis)
+		(rotateAttachpoint :col 6 -0.06 )
+		(rotateAttachpoint :col 5 -0.06 )
 
-		(alignkeys [[0 0] [1 0] :ontheleft])
+		(angleKey :row 0 0.2 :xaxis)
 
+		(moveonXYZ :col 3 0 2 0)
+		(moveonXYZ :col 5 2 -4 0)
+		(moveonXYZ :col 6 2 -4 0)
+		
+		(moveonXYZ :row 0 0 0 -2)
 
+		
 
+		(moveonXYZ :colrow [1 0] -3 -5 0)
+		(moveonXYZ :colrow [0 0] -4.5 -12 0)
+
+		(rotateAttachpoint :colrow [1 0] 0.2)
+		(rotateAttachpoint :colrow [0 0] 0.4)
+		(rotateAttachpoint :colrow [0 1] 0.4)
+
+		(moveonXYZ :colrow [4 0] 1 -4 0)
+		(rotateAttachpoint :colrow [4 0] -0.06)
+
+		(moveonXYZ :row 1 0 -1.5 0)
+		(moveonXYZ :row 2 0 -0.5 0)
+
+		(alignkeys [[3 0] [4 0] :ontheleft])
+		(alignkeys [[2 0] [3 0] :ontheleft])
+		;(alignkeys [[5 0] [4 0] :ontheright])
+		;(alignkeys [[6 0] [5 0] :ontheright])
 		(keyExistence)
 		(changeNonExistentKeys)
 		(changeKeyCapSize)
+
+
+
 	))
 	
 (defn readingArrayFunctions [arr & more]
 	"These functions only read the array and return OpenSCAD shapes hence the arr parameter being 
 	passed to each of them individually (unlike the threading of the writingArrayFunctions)"
-	(rotate (/ Math/PI 15) [0 1 0]  
+	;(rotate (/ Math/PI 15) [0 1 0]  
 	(union 
 
-		;MAKING PLATE
+		;;MAKING PLATE
 		(union 
 			(makeconnectors arr :plate)
 			(makesidenubs arr)
 			) 
 			
 
-		;MAKING  BASE
-		(difference
-			(union
-				(makeconnectors arr :base)
-				(promicro 4.4 18 33.3 :pos arr)
-				(microusb 4 8.2 11.5 :pos arr))
-			(union
-				(promicro 4.4 18 33.3 :neg arr)
-				(microusb 4 8.2 11.5 :neg arr))
-			)
-		 (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
+		;;MAKING  BASE
+		; (difference
+		; 	(union
+		; 		(makeconnectors arr :base)
+		; 		(promicro 4.4 18 33.3 :pos arr)
+		; 		(microusb 4 8.2 11.5 :pos arr))
+		; 	(union
+		; 		(promicro 4.4 18 33.3 :neg arr)
+		; 		(microusb 4 8.2 11.5 :neg arr))
+		; 	)
+		;  (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
+
+		; (difference 
+		;  	(makeconnectors arr :base)
+		; 	(translate [0 0 -45] 
+		; 		(union
+		; 			 (cube 200 200 50)
+		; 		(->> "Hal Frigaard"
+		; 		 	 (text "FontAwesomne" 10)
+		; 		 	 (extrude-linear {:height 3})
+		; 		 	 (translate [-10 -30 25]))
+		; 		(->> "June-Sept-2017"
+		; 			 (text "FontAwesomne" 10)
+		; 			 (extrude-linear {:height 3})
+		; 			 (translate [-10 -18 25]))
+		; 		(->> "git.io/v5lM4"
+		; 			 (text "FontAwesomne" 10)
+		; 			 (extrude-linear {:height 3})
+		; 			 (translate [-10 -4 25]))))
+		;  	(promicro 4.4 18 33.3 :neg arr)
+		;  	(microusb 3 8.2 11.5 :neg arr))
+
+
+		
+
+		; (->>
+		; 		(cube 200 200 50)
+		; 		(translate [0 0 -50] )
+		; 		)
 		
 		(showkeycaps arr)
-		(showconnectors arr)
+		;(showconnectors arr)
 		;(showsquareatkey arr)
 
-	)))
+	));)
 
 (defn buildarray []
 	(-> (createarray arrXWid arrYLen) ;create the array to pass onto the transformation functions
