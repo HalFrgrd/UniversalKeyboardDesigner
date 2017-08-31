@@ -53,10 +53,10 @@
 
 (def keycaparray 	[
 					
-					[1 1 1 1 1 1 1 ] 
-					[1 1 1 1 1 1 1 ] 
-					[1 1 1 1 1 1 1 ] 
-					[1 1 1 1 1 1 1 ] ;as seem from origin looking in pos x, pos y
+					[1 1 1 1 1 1 1.5 ] 
+					[1 1 1 1 1 1 1.5 ] 
+					[1 1 1 1 1 1 1.5 ] 
+					[1 1 1 1 1 1 1.5 ] ;as seem from origin looking in pos x, pos y
 					])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1163,6 +1163,11 @@
 		(moveonXYZ :row 1 0 -1.5 0)
 		(moveonXYZ :row 2 0 -0.5 0)
 
+		(moveonXYZ :col 1 -1 0 0)
+		(moveonXYZ :col 2 -1 0 0)
+		(moveonXYZ :col 6 4.5 0 0)
+
+
 		(alignkeys [[3 0] [4 0] :ontheleft])
 		(alignkeys [[2 0] [3 0] :ontheleft])
 		;(alignkeys [[5 0] [4 0] :ontheright])
@@ -1182,10 +1187,10 @@
 	(union 
 
 		;;MAKING PLATE
-		(union 
-			(makeconnectors arr :plate)
-			(makesidenubs arr)
-			) 
+		; (union 
+		; 	(makeconnectors arr :plate)
+		; 	(makesidenubs arr)
+		; 	) 
 			
 
 		;;MAKING  BASE
@@ -1220,15 +1225,37 @@
 		;  	(promicro 4.4 18 33.3 :neg arr)
 		;  	(microusb 3 8.2 11.5 :neg arr))
 
+		(difference
+			(cube 36 36 3.66)
+			(cube 27.5 19.7 10)
+			(translate [0 10 0] (cube 11 8 10))
+			(->> (cylinder 1 10)
+				 (with-fn 12)
+				 (translate [11.7 11.7 0]))
+			(->> (cylinder 1 10)
+				 (with-fn 12)
+				 (translate [11.7 -11.7 0]))
+			(->> (cylinder 1 10)
+				 (with-fn 12)
+				 (translate [-11.7 11.7 0]))
+			(->> (cylinder 1 10)
+				 (with-fn 12)
+				 (translate [-11.7 -11.7 0]))
+			(translate [0 0 -4.83] (cube 29.6 29.6 10))
 
-		
+			(->> (cube 14 6 4)
+				(translate [0 -11 1.2] )
+				(rotate  0.22 [1 0 0]))
 
+			)
+
+			
 		; (->>
 		; 		(cube 200 200 50)
 		; 		(translate [0 0 -50] )
 		; 		)
 		
-		(showkeycaps arr)
+		;(showkeycaps arr)
 		;(showconnectors arr)
 		;(showsquareatkey arr)
 
