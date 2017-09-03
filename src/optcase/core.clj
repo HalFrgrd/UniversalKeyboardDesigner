@@ -632,7 +632,21 @@
 							(translate [0 10 0]
 								(hull
 									(cube 8.5 length 0.01)
-									(translate [0 0 height] (cube 8.5 length 0.01)))))
+									(translate [0 0 height] (cube 8.5 length 0.01))))
+							(->> (cylinder 1.5 50)
+									(with-fn 8)
+									(rotate  0.7 [0 1 0])
+									(translate [-15 0 0 ])
+									)
+								(->> (cylinder 1.5 50)
+									(with-fn 8)
+									(rotate  -0.7 [0 1 0])
+									(translate [15 0 0 ])
+									)
+								(->> (cube 32 3 3)
+									(translate [0 0 -1]))
+
+							)
 						
 						)
 
@@ -672,10 +686,23 @@
 									(translate [0 0 height] 				   (cube (+ width midwallthick) (+ length midwallthick) 0.01))
 									(translate [0 0 (+ 10 height midwallthick)] (cube (+ width midwallthick) (+ length midwallthick) 0.01))
 									)
-							(translate [0 10 0]
-								(hull
-									(cube 8.5 length 0.01)
-									(translate [0 0 height] (cube 8.5 length 0.01)))))
+								(translate [0 10 0]
+									(hull
+										(cube 8.5 length 0.01)
+										(translate [0 0 height] (cube 8.5 length 0.01))))
+								(->> (cylinder 1.5 50)
+									(with-fn 8)
+									(rotate  0.7 [0 1 0])
+									(translate [-10 0 0 ])
+									)
+								(->> (cylinder 1.5 50)
+									(with-fn 8)
+									(rotate  -0.7 [0 1 0])
+									(translate [10 0 0 ])
+									)
+								(->> (cube 25 3 3)
+									(translate [0 0 -1]))
+								)
 						
 						)
 
@@ -694,6 +721,65 @@
 		)
 	)
 
+(defn oledscreen [shape] 
+	
+	(case shape
+		:normal
+			(difference
+					(cube 36 36 3.66)
+					(cube 27.5 19.7 10)
+					(translate [0 10 0] (cube 11 8 10))
+					(->> (cylinder 1 10)
+						 (with-fn 12)
+						 (translate [11.7 11.7 0]))
+					(->> (cylinder 1 10)
+						 (with-fn 12)
+						 (translate [11.7 -11.7 0]))
+					(->> (cylinder 1 10)
+						 (with-fn 12)
+						 (translate [-11.7 11.7 0]))
+					(->> (cylinder 1 10)
+						 (with-fn 12)
+						 (translate [-11.7 -11.7 0]))
+					(translate [0 0 -4.83] (cube 29.6 29.6 10))
+
+					(->> (cube 14 6 4)
+						(translate [0 -11 1.2] )
+						(rotate  0.22 [1 0 0])))
+		:tl (->> (cube 1 1 3.66)
+				(translate [-17.5 17.5 0]))
+		:tr (->> (cube 1 1 3.66)
+				(translate [17.5 17.5 0]))
+		:bl (->> (cube 1 1 3.66)
+				(translate [-17.5 -17.5 0]))
+		:br (->> (cube 1 1 3.66)
+				(translate [17.5 -17.5 0]))
+
+	)
+	)
+
+(defn boltholes [arr]
+	(let [
+		hole
+			(translate [0 0 -3]
+			(->> 
+				(cylinder 1.5 40)
+				(with-fn 24)
+			)
+			(->> (cylinder 2.9 8)
+				(translate [0 0 -18])
+				(with-fn 6))
+			)
+		hole1 (retr arr 1 3 )
+		hole2 (retr arr 0 0 )
+		hole3 (retr arr 6 3 )
+		hole4 (retr arr 5 0 )	]
+	(union
+	(attach [(:cpntPos hole1) (:cpntVec hole1) 0 ] [[6 10 0] [0 0 1] 0] hole)
+	(attach [(:cpntPos hole2) (:cpntVec hole2) 0 ] [[-11 0 0] [0 0 1] 0] hole)
+	(attach [(:cpntPos hole3) (:cpntVec hole3) 0 ] [[-3 10 0] [0 0 1] 0] hole)
+	(attach [(:cpntPos hole4) (:cpntVec hole4) 0 ] [[-11 4 0] [0 0 1] 0] hole)
+	)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions that write the array
@@ -1187,73 +1273,66 @@
 	(union 
 
 		;;MAKING PLATE
-		; (union 
-		; 	(makeconnectors arr :plate)
-		; 	(makesidenubs arr)
-		; 	) 
-			
-
-		;;MAKING  BASE
-		; (difference
-		; 	(union
-		; 		(makeconnectors arr :base)
-		; 		(promicro 4.4 18 33.3 :pos arr)
-		; 		(microusb 4 8.2 11.5 :pos arr))
-		; 	(union
-		; 		(promicro 4.4 18 33.3 :neg arr)
-		; 		(microusb 4 8.2 11.5 :neg arr))
-		; 	)
-		;  (rotate (/ Math/PI -15) [0 1 0] (makelegs arr))
-
-		; (difference 
-		;  	(makeconnectors arr :base)
-		; 	(translate [0 0 -45] 
-		; 		(union
-		; 			 (cube 200 200 50)
-		; 		(->> "Hal Frigaard"
-		; 		 	 (text "FontAwesomne" 10)
-		; 		 	 (extrude-linear {:height 3})
-		; 		 	 (translate [-10 -30 25]))
-		; 		(->> "June-Sept-2017"
-		; 			 (text "FontAwesomne" 10)
-		; 			 (extrude-linear {:height 3})
-		; 			 (translate [-10 -18 25]))
-		; 		(->> "git.io/v5lM4"
-		; 			 (text "FontAwesomne" 10)
-		; 			 (extrude-linear {:height 3})
-		; 			 (translate [-10 -4 25]))))
-		;  	(promicro 4.4 18 33.3 :neg arr)
-		;  	(microusb 3 8.2 11.5 :neg arr))
-
 		(difference
-			(cube 36 36 3.66)
-			(cube 27.5 19.7 10)
-			(translate [0 10 0] (cube 11 8 10))
-			(->> (cylinder 1 10)
-				 (with-fn 12)
-				 (translate [11.7 11.7 0]))
-			(->> (cylinder 1 10)
-				 (with-fn 12)
-				 (translate [11.7 -11.7 0]))
-			(->> (cylinder 1 10)
-				 (with-fn 12)
-				 (translate [-11.7 11.7 0]))
-			(->> (cylinder 1 10)
-				 (with-fn 12)
-				 (translate [-11.7 -11.7 0]))
-			(translate [0 0 -4.83] (cube 29.6 29.6 10))
-
-			(->> (cube 14 6 4)
-				(translate [0 -11 1.2] )
-				(rotate  0.22 [1 0 0]))
-
+		(union 
+			(makeconnectors arr :plate)
+			;(makesidenubs arr)
+			) 
+		(->> (cube 30 30 40)
+			(translate [-66.4 -5 0])
+			(rotate 0.06 [0 0 1])
 			)
 
+		(->> (cube 30 30 40)
+			(translate [-70.1 15 0])
+			(rotate 0.45 [0 0 1])
+			)
+		(boltholes arr))
+
+		(let [
+			keyforattachment (retr arr 1 1)
+			attaching 		(partial attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) (:cpntAng keyforattachment)]  [[30 -10 2] [0 0.1 1] 0]) ]
+
+			(union
+			(attaching (oledscreen :normal))
+
+			(hull (attaching (union (oledscreen :bl ) (oledscreen :br)))
+					(putupapost arr -1       0 :tr :callfromthisone :makingrows :here true :plate)
+					(putupapost arr 1       0 :tl :callfromthisone :makingrows :here true :plate))
+			))
+
 			
-		; (->>
-		; 		(cube 200 200 50)
-		; 		(translate [0 0 -50] )
-		; 		)
+
+		
+
+		;;MAKING  BASE
+		
+
+		 ; (difference 
+		 ;  	(makeconnectors arr :base)
+			; (translate [0 0 -45] 
+			; 	(union
+			; 		 (cube 200 200 50))
+			; 	(->> "Hal Frigaard"
+			; 	 	 (text "FontAwesomne" 10)
+			; 	 	 (extrude-linear {:height 3})
+			; 	 	 (translate [-10 -30 25]))
+			; 	(->> "June-Sept-2017"
+			; 		 (text "FontAwesomne" 10)
+			; 		 (extrude-linear {:height 3})
+			; 		 (translate [-10 -18 25]))
+			; 	(->> "goo.gl/tVrenV"
+			; 		 (text "FontAwesomne" 10)
+			; 		 (extrude-linear {:height 3})
+			; 		 (translate [-10 -4 25])))
+		 ;  	(promicro 4.4 18 33.3 :neg arr)
+		 ;  	(microusb 3 8.2 11.5 :neg arr)
+		 ;  	(boltholes arr))
+
+		
+
+			
+	
 		
 		;(showkeycaps arr)
 		;(showconnectors arr)
