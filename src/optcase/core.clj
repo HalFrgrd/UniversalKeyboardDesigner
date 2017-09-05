@@ -39,8 +39,8 @@
 (def topedgepadding 5)
 (def bottedgepadding 5)
 
-(def mount-hole-width 14)
-(def mount-hole-height 14)
+(def mount-hole-width 14.2)
+(def mount-hole-height 14.2)
 (def spacminussize (- keywidthForSpacing mount-hole-height))
 
 (def existencearray [
@@ -1258,6 +1258,15 @@
 		(alignkeys [[2 0] [3 0] :ontheleft])
 		;(alignkeys [[5 0] [4 0] :ontheright])
 		;(alignkeys [[6 0] [5 0] :ontheright])
+
+
+		(moveonXYZ :colrow [2 0] -2.5 0 0)
+		(moveonXYZ :colrow [3 0] -2.2 0 0)
+		(moveonXYZ :colrow [4 0] -2 0 0)
+		(moveonXYZ :colrow [5 0] -1 -0.5 0)
+		
+		(moveonXYZ :colrow [1 0] -0.5 0 0)
+
 		(keyExistence)
 		(changeNonExistentKeys)
 		(changeKeyCapSize)
@@ -1269,10 +1278,10 @@
 (defn readingArrayFunctions [arr & more]
 	"These functions only read the array and return OpenSCAD shapes hence the arr parameter being 
 	passed to each of them individually (unlike the threading of the writingArrayFunctions)"
-	;(rotate (/ Math/PI 15) [0 1 0]  
+	(mirror [1 0 0]
 	 (union 
 
-		;;MAKING PLATE
+		;MAKING PLATE
 		; (difference
 		; (union 
 		; 	(makeconnectors arr :plate)
@@ -1313,19 +1322,22 @@
 			(translate [0 0 -45] 
 				(union
 					 (cube 200 200 50))
-				; (->> "Hal Frigaard"
-				;  	 (text "FontAwesomne" 10)
-				;  	 (extrude-linear {:height 3})
-				;  	 (translate [-10 -30 25]))
-				; (->> "June-Sept-2017"
-				; 	 (text "FontAwesomne" 10)
-				; 	 (extrude-linear {:height 3})
-				; 	 (translate [-10 -18 25]))
-				; (->> "goo.gl/tVrenV"
-				; 	 (text "FontAwesomne" 10)
-				; 	 (extrude-linear {:height 3})
-				; 	 (translate [-10 -4 25]))
-				)
+				
+
+				(mirror [1 0 0] 
+				(->> "Hal Frigaard"
+				 	 (text "FontAwesomne" 10)
+				 	 (extrude-linear {:height 3})
+				 	 (translate [-50 -30 25]))
+				(->> "June-Sept-2017"
+					 (text "FontAwesomne" 10)
+					 (extrude-linear {:height 3})
+					 (translate [-50 -18 25]))
+				(->> "goo.gl/tVrenV"
+					 (text "FontAwesomne" 10)
+					 (extrude-linear {:height 3})
+					 (translate [-50 -4 25]))
+				))
 		  	(promicro 4.4 18 33.3 :neg arr)
 		  	(microusb 3 8.2 11.5 :neg arr)
 		  	(boltholes arr)
@@ -1348,7 +1360,7 @@
 		;(showconnectors arr)
 		;(showsquareatkey arr)
 
-	));)
+	)))
 
 (defn buildarray []
 	(-> (createarray arrXWid arrYLen) ;create the array to pass onto the transformation functions
