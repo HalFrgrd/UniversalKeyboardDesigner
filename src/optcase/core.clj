@@ -1270,36 +1270,36 @@
 	"These functions only read the array and return OpenSCAD shapes hence the arr parameter being 
 	passed to each of them individually (unlike the threading of the writingArrayFunctions)"
 	;(rotate (/ Math/PI 15) [0 1 0]  
-	(union 
+	 (union 
 
 		;;MAKING PLATE
-		(difference
-		(union 
-			(makeconnectors arr :plate)
-			;(makesidenubs arr)
-			) 
-		(->> (cube 30 30 40)
-			(translate [-66.4 -5 0])
-			(rotate 0.06 [0 0 1])
-			)
+		; (difference
+		; (union 
+		; 	(makeconnectors arr :plate)
+		; 	;(makesidenubs arr)
+		; 	) 
+		; (->> (cube 30 30 40)
+		; 	(translate [-66.4 -5 0])
+		; 	(rotate 0.06 [0 0 1])
+		; 	)
 
-		(->> (cube 30 30 40)
-			(translate [-70.1 15 0])
-			(rotate 0.45 [0 0 1])
-			)
-		(boltholes arr))
+		; (->> (cube 30 30 40)
+		; 	(translate [-70.1 15 0])
+		; 	(rotate 0.45 [0 0 1])
+		; 	)
+		; (boltholes arr))
 
-		(let [
-			keyforattachment (retr arr 1 1)
-			attaching 		(partial attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) (:cpntAng keyforattachment)]  [[30 -10 2] [0 0.1 1] 0]) ]
+		; (let [
+		; 	keyforattachment (retr arr 1 1)
+		; 	attaching 		(partial attach [(:cpntPos keyforattachment) (:cpntVec keyforattachment) (:cpntAng keyforattachment)]  [[30 -10 2] [0 0.1 1] 0]) ]
 
-			(union
-			(attaching (oledscreen :normal))
+		; 	(union
+		; 	(attaching (oledscreen :normal))
 
-			(hull (attaching (union (oledscreen :bl ) (oledscreen :br)))
-					(putupapost arr -1       0 :tr :callfromthisone :makingrows :here true :plate)
-					(putupapost arr 1       0 :tl :callfromthisone :makingrows :here true :plate))
-			))
+		; 	(hull (attaching (union (oledscreen :bl ) (oledscreen :br)))
+		; 			(putupapost arr -1       0 :tr :callfromthisone :makingrows :here true :plate)
+		; 			(putupapost arr  1       0 :tl :callfromthisone :makingrows :here true :plate))
+		; 	))
 
 			
 
@@ -1308,26 +1308,36 @@
 		;;MAKING  BASE
 		
 
-		 ; (difference 
-		 ;  	(makeconnectors arr :base)
-			; (translate [0 0 -45] 
-			; 	(union
-			; 		 (cube 200 200 50))
-			; 	(->> "Hal Frigaard"
-			; 	 	 (text "FontAwesomne" 10)
-			; 	 	 (extrude-linear {:height 3})
-			; 	 	 (translate [-10 -30 25]))
-			; 	(->> "June-Sept-2017"
-			; 		 (text "FontAwesomne" 10)
-			; 		 (extrude-linear {:height 3})
-			; 		 (translate [-10 -18 25]))
-			; 	(->> "goo.gl/tVrenV"
-			; 		 (text "FontAwesomne" 10)
-			; 		 (extrude-linear {:height 3})
-			; 		 (translate [-10 -4 25])))
-		 ;  	(promicro 4.4 18 33.3 :neg arr)
-		 ;  	(microusb 3 8.2 11.5 :neg arr)
-		 ;  	(boltholes arr))
+		 (difference 
+		  	(makeconnectors arr :base)
+			(translate [0 0 -45] 
+				(union
+					 (cube 200 200 50))
+				; (->> "Hal Frigaard"
+				;  	 (text "FontAwesomne" 10)
+				;  	 (extrude-linear {:height 3})
+				;  	 (translate [-10 -30 25]))
+				; (->> "June-Sept-2017"
+				; 	 (text "FontAwesomne" 10)
+				; 	 (extrude-linear {:height 3})
+				; 	 (translate [-10 -18 25]))
+				; (->> "goo.gl/tVrenV"
+				; 	 (text "FontAwesomne" 10)
+				; 	 (extrude-linear {:height 3})
+				; 	 (translate [-10 -4 25]))
+				)
+		  	(promicro 4.4 18 33.3 :neg arr)
+		  	(microusb 3 8.2 11.5 :neg arr)
+		  	(boltholes arr)
+		  	(->> (cube 30 30 40)
+			(translate [-66.4 -5 -1])
+			(rotate 0.06 [0 0 1])
+			)
+
+		(->> (cube 30 30 40)
+			(translate [-70.1 15 -1])
+			(rotate 0.45 [0 0 1])
+			))
 
 		
 
