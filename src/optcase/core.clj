@@ -19,31 +19,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def keywidthForSpacing 	14)
-(def keySpacing 			5.05)
-(def arrXWid				7 )
-(def arrYLen				4 )
+(def keywidthForSpacing 	14) ; I have big hands, so I increase this for the keys to be further apart. Does not affect key hole size.
+(def keySpacing 			5.05) ;spacing between keys
+(def arrXWid				7 ) ;number of columns. be sure to change existence array and keycaparray if using those functions. 
+(def arrYLen				4 ) ;number of rows
 
-(def plate-thickness 4)
-(def dsa-length 18.25)
+(def plate-thickness 4) ;how thick the plate should be
+(def dsa-length 18.25) 
 (def dsa-double-length 37.5)
 (def heightbaseofkeycap 6.1 )
 
-(def edgeheight 15)
+(def edgeheight 15) ;the edge height of the plate
 (def basethickness 30) ;if you want a curved base, set this to the same as desired basethickness
-(def desiredbasethickness 4)
-(def overlap	2)
+(def desiredbasethickness 4) 
+(def overlap	2) ;this is how far the bottom will stick into the keyplate
 
-(def leftedgepadding 5)
+(def leftedgepadding 5) ;this don't work if you have non existing keys at the border. 
 (def rightedgepadding 5)
 (def topedgepadding 5)
 (def bottedgepadding 5)
 
-(def mount-hole-width 14.2)
-(def mount-hole-height 14.2)
-(def spacminussize (- keywidthForSpacing mount-hole-height))
+(def mount-hole-width 14.1) ;When making the script, I used these interchangeably, so don't set them to different values. 
+(def mount-hole-height mount-hole-width)
+(def spacminussize (- keywidthForSpacing mount-hole-height)) ;used for some calculations later
 
-(def existencearray [
+(def existencearray [ ;turn the existence of keys on and off. 
 					
 					[false true true true  true  true  true ] 
 					[false true true true true  true true ] 
@@ -51,7 +51,8 @@
 					[true  true true true  true  true true ] ;as seem from origin looking in pos x, pos y
 					])
 
-(def keycaparray 	[
+(def keycaparray 	[ ;size of keycaps, currently only 1, 1.5 and 2 are being used. You must separately move the keys to create space.
+					  ;its best to turn on showkeycaps and then adjust the key positions to have enough space for the keycaps.
 					
 					[1 1 1 1 1 1 1.5 ] 
 					[1 1 1 1 1 1 1.5 ] 
@@ -150,6 +151,7 @@
 ;;; Keycaps + Keyswitch
 
 (def dsa-cap 
+	"This is from the Dactyl as well. I have modified some of the keys to make them look like dsa."
 	{		1 (let [bl2 (/ 18.5 2)
                      m (/ 18 2)
                      key-cap (hull (->> (polygon [[bl2 bl2] [bl2 (- bl2)] [(- bl2) (- bl2)] [(- bl2) bl2]])
@@ -192,6 +194,7 @@
                       (translate [0 0 heightbaseofkeycap])
                       (color [0 0.51 0.24 1])))})
 (def keyswitch 
+	"This is a rough model of a cherry mx switch."
 	(let [
 		hw (/ 15.6 2)
 		points 	[
@@ -228,6 +231,7 @@
 	)))
 
 (defn showkeycaps [arr]
+	"Puts the correct sized keycap and a switch at each position"
 		(for [ycoin (range arrYLen) xcoin (range arrXWid)]
 			(let [
 			pntData 	(retr arr xcoin ycoin)
@@ -243,6 +247,7 @@
 				)))))
 
 (defn showsquareatkey [arr]
+	"For debugging. Just puts a square at each position"
 		(for [ycoin (range -1 (inc arrYLen)) xcoin (range -1 (inc arrXWid))]
 			(let [
 			pntData 	(smartretrPntData arr xcoin ycoin)
@@ -284,6 +289,7 @@
               (partition 3 1 shapes))))
 
 (defn putupapost [arr xcoin ycoin pos callingfrom makingwhat callingto buildedgesornot plateorbase]
+	"important function in making the web for the plate and for the base. given the arguments, it will intelligently put a post where you want it to go."
 	(let [
 		pntData (smartretrPntData arr xcoin ycoin)
 		cpntP 		(:cpntPos pntData)
@@ -291,7 +297,7 @@
 		cpntA 		(:cpntAng pntData)
 		exists		(:existence pntData)
 
-		edge    ;this determines if the post should be an edge post or not.
+		edge;this determines if the post should be an edge post or not.
 			;This is easy if x or y is -1 or arrxwid or arrylen.
 			;also easy if x or y is 0 and being called from the left or below. 
 			;Remember that the webbing starts with one key and then awakens keys to the right or above it.
@@ -371,7 +377,7 @@
 		xtrans (cond 
 				(= xcoin -1) (- keySpacing leftedgepadding)
 				(= xcoin arrXWid) (- rightedgepadding keySpacing)
-				; (= exists false)
+				; (= exists false) ;this was my attempt at making sure the edge padding would show up when a key doesn't exist.
 				; 	(cond 
 				; 		(and (= :callfromleft callingfrom) (= :makingrows makingwhat))
 				; 			(- 0 keySpacing (- leftedgepadding) spacminussize)
@@ -416,9 +422,9 @@
 						(= pos :tr) (partial web-post-tr)
 						(= pos :br) (partial web-post-br)
 						)
-		post 		(if (and buildedgesornot edge) (resize [0 0 edgeheight   ] post) post)
-		post 		(if (= plateorbase :base) 	   (resize [0 0 basethickness] post) post)
-		post 		(if (and (= plateorbase :base) edge) (->> post
+		post 		(if (and buildedgesornot edge) (resize [0 0 edgeheight   ] post) post) ;makes a post into an edge.
+		post 		(if (= plateorbase :base) 	   (resize [0 0 basethickness] post) post) 
+		post 		(if (and (= plateorbase :base) edge) (->> post ;this takes care of fitting the base into the plate.
 															(resize [0 0 (- basethickness overlap )])
 															(translate [0 0  (- overlap )])
 															) post)
@@ -432,6 +438,8 @@
 		)
 
 (defn neigbhourtoexistence? [arr xcoin ycoin buildingwhat]
+	"Returns true if a non existent key is neighbours to an existing key. 
+	Because the key on the left is responsible for creating the lefthand side belonging to the key to the right."
 
 	(let [existenceofthisone 			( (smartretrPntData arr xcoin ycoin) :existence)
 		  existenceofnextrow 			( (smartretrPntData arr xcoin (inc ycoin)) :existence)
@@ -450,9 +458,11 @@
 (defn makeconnectors [arr plateorbase] 
 	"Creates posts at the corner of each key switch and hulls them with the posts on other keycaps.
 	The edges and corners are created by going one less than the array and one more than the array.
-	When the variable is out of bounds, it is caught in the smartretrPntData. If the key doesn't exist 
+	When the xcoin or ycoing variable is out of bounds, it is caught in the smartretrPntData. If the key doesn't exist 
 	it might still be used because it is involved in making and edge or corner for a key that does exist.
-	This is dealt with in neigbhourtoexistence."
+	This is dealt with in neigbhourtoexistence.
+	The base is made by doing pretty much doing a plate but moving it down by edgeheight (about 15mm) and hulling the 
+	hole where the key would go."
 	(let [
 		buildedges 	(cond
 						(= plateorbase :plate) true
@@ -522,6 +532,7 @@
 ;;;;;;;
 
 (defn showconnectors [arr]
+	"The connectors are the point and vector that represents each key."
 		(for [ycoin (range arrYLen) xcoin (range arrXWid)]
 			(let [
 			pntData 	(retr arr xcoin ycoin)
@@ -534,23 +545,29 @@
 				))))
 
 (defn makelegs [arr]
+	"This makes four legs (can easily be changed) and positions them. Tinkering with 
+	the translate function for each leg is how you position them correctly."
 	(let [
 		topright ((retr arr (- arrXWid 1) (- arrYLen 1)) :cpntPos)
 		topleft ((retr arr 2 (- arrYLen 1)) :cpntPos)
 		bottomright ((retr arr (- arrXWid 1) 1) :cpntPos)
 		bottomleft ((retr arr 0 0) :cpntPos)
+		leg 		(cylinder 5 60)
 		]
 		(difference
 			(union
-				(translate [(+ (topright    0) 0) (- (topright    1) -5) -41] (cylinder 5 60))
-				(translate [(+ (topleft     0) -5  ) (- (topleft     1) -10) -27] (cylinder 5 60))
-				(translate [(- (bottomright 0) -2 ) (- (bottomright 1) 25) -38] (cylinder 5 60))
-				(translate [(+ (bottomleft  0) 12  ) (- (bottomleft  1) -3) -24] (cylinder 5 60))
+				(translate [(+ (topright    0) 0) (- (topright    1) -5) -41] leg)
+				(translate [(+ (topleft     0) -5  ) (- (topleft     1) -10) -27] leg)
+				(translate [(- (bottomright 0) -2 ) (- (bottomright 1) 25) -38] leg)
+				(translate [(+ (bottomleft  0) 12  ) (- (bottomleft  1) -3) -24] leg)
 			)
 			(translate [0 0 -77] (cube 200 200 100))
 	)))
 
 (defn usbcutouts [positiveornegativeshape]
+	"This make a little pocket for something like a microusb.
+	Don't use this function. Use the promicro or microusb functions."
+
 	(let [
 		internalwidth 		28
 		wallwdith 			4
@@ -575,6 +592,7 @@
 	)
 
 (defn sidenub []
+	"The shape for the makesidenubs function"
 	(->> (cylinder 0.6 2.75)
   		 (with-fn 30)
 		 (rotate (/ π 2) [1 0 0])
@@ -586,6 +604,7 @@
 		 ))
 
 (defn makesidenubs [arr]
+	"Makes a little nub on each key "
 	(for [ycoin (range arrYLen) xcoin (range arrXWid)]
 		(let [
 			pntData (retr arr xcoin ycoin)

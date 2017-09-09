@@ -15,8 +15,12 @@ The writingArrayFunctions modifies the array with functions such as:
 - angleKey
 
 
-(from dactyl by adereth)
+Take a look at the hf40 branch for an example of a fully modified design.
+
+
 ### Generating a Design
+
+(from Adereth's Dactyl)
 
 **Setting up the Clojure environment**
 * [Install the Clojure runtime](https://clojure.org)
