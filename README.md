@@ -57,3 +57,4 @@ This is for things like:
 
 ### Need help?
 Feel free to open an issue with what you are trying to accomplish.
+Happy for you to use this for whatever.
